@@ -1,13 +1,19 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import YoutubeModal from 'react-youtube-modal';
+
+
 
 import {
 	ReactiveBase,
 	DataSearch,
 	MultiList,
 	SelectedFilters,
-	ReactiveList
+	ReactiveList,
+	ResultCard,
+    ToggleButton,
+	SingleList
 } from '@appbaseio/reactivesearch';
 import {
 	Row,
@@ -78,14 +84,22 @@ function renderItem(res, triggerClickAnalytics) {
 
 const App = () => (
 	<ReactiveBase
-		app="youtube"
+		app="y1"
 		url="http://163.123.181.211:9200"
 		analytics={false}
 		searchStateHeader
 	>
 		<Row gutter={16} style={{ padding: 20 }}>
-			<Col span={12}>
+			<Col span={6}>
 				<Card>
+				<ToggleButton
+					componentId="Status"
+					dataField="Privacy_Status.keyword"
+					data={[
+						{ label: 'Private', value: 'private' },
+						{ label: 'Public', value: 'public' }
+					]}
+				/>
 				<MultiList
 				  componentId="list-1"
 				  dataField="Playlist_Name.keyword"
@@ -95,9 +109,26 @@ const App = () => (
 				  }}
 				  title="Album"
 				/>
+				<SingleList
+				  componentId="CitySensor"
+				  dataField="Playlist_Name.keyword"
+				  title="Cities"
+				  size={100}
+				  sortBy="count"
+				 
+				  showRadio={true}
+				  showCount={true}
+				  showSearch={true}
+				  placeholder="Search City"
+				 
+				  showFilter={true}
+				  filterLabel="City"
+				
+				  loader="Loading ..."
+				/>
 				</Card>
 			</Col>
-			<Col span={12}>
+			<Col span={18}>
 				<DataSearch
 				  componentId="search"
 				  dataField={[
@@ -128,14 +159,73 @@ const App = () => (
 				  react={{
 				    and: [
 				      'search',
-				      'list-1'
+				      'list-1',
+					  'Status',
+					  'CitySensor'
 				    ]
 				  }}
 				  renderItem={renderItem}
-				  size={5}
+				  size={10}
 				  style={{
 				    marginTop: 20
 				  }}
+				  render={({ data }) => (
+						<ReactiveList.ResultCardsWrapper>
+							{data.map(item => (
+						    <YoutubeModal videoId={item.Video_Id} height="529" width="920" >
+								<ResultCard className="js-video-button" key={item.id}  >
+								 
+									
+								   
+									<ResultCard.Image src={item.image}/>
+										<ResultCard.Title>
+										<div
+											className="book-title"
+											dangerouslySetInnerHTML={{
+												__html: item.Video_Title,
+											}}
+										/>
+									</ResultCard.Title>
+									
+
+									<ResultCard.Description>
+										<div className="flex column justify-space-between">
+											<div>
+												<div>
+													by{' '}
+													<span className="authors-list">
+														{item.Playlist_Name}
+													</span>
+												</div>
+												<div className="ratings-list flex align-center">
+													<span className="stars">
+														{Array(item.average_rating_rounded)
+															.fill('x')
+															.map((
+																item, // eslint-disable-line
+																index,
+															) => (
+																<i
+																	className="fas fa-star"
+																	key={index} // eslint-disable-line
+																/>
+															))}
+													</span>
+													<span className="avg-rating">
+														({item.average_rating} avg)
+													</span>
+												</div>
+											</div>
+											<span className="pub-year">
+												Pub {item.original_publication_year}
+											</span>
+										</div>
+									</ResultCard.Description>
+								</ResultCard>
+								</YoutubeModal>
+							))}
+						</ReactiveList.ResultCardsWrapper>
+					)}
 				/>
 				</div>
 			</Col>
